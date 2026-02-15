@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PC LoL 연구소</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* PC 테마: 골드 + 블랙 */
+        body { background-color: #091428; color: #c8aa6e; font-family: 'Noto Sans KR', sans-serif; text-align: center; padding: 20px; }
+        .slot { width: 60px; height: 60px; background: rgba(0,0,0,0.5); border: 2px solid #444; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; margin: 5px; cursor: pointer; }
+        .slot img { width: 100%; height: 100%; }
+        .item-card { width: 48px; height: 48px; border: 1px solid #444; display: inline-block; margin: 2px; cursor: pointer; }
+        .item-card:hover { border-color: #c8aa6e; transform: scale(1.1); }
+        /* (나머지 스타일은 위와 동일하게 적용) */
+    </style>
+</head>
+<body>
+    <h2>💻 PC LoL 아이템 연구소</h2>
+    <div id="inventory">
+        <div class="slot" onclick="removeItem(0)"></div>
+        <div class="slot" onclick="removeItem(1)"></div>
+        <div class="slot" onclick="removeItem(2)"></div>
+        <div class="slot" onclick="removeItem(3)"></div>
+        <div class="slot" onclick="removeItem(4)"></div>
+        <div class="slot" onclick="removeItem(5)"></div>
+    </div>
+    
+    <div style="max-width:400px; margin:20px auto;"><canvas id="statChart"></canvas></div>
+    <div id="textStats" style="background:#1e2328; padding:15px; margin:0 auto; max-width:400px;"></div>
+    
+    <input type="text" id="search" placeholder="검색..." onkeyup="filterItems()" style="margin:20px; padding:10px;">
+    <div id="itemList"></div>
+
+    <script>
+        const VERSION = "14.3.1"; // 롤 패치때마다 이 숫자만 바꿔주면 됨
+        const DATA_URL = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/data/ko_KR/item.json`;
+        const IMG_URL = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/img/item/`;
+
+        let allItems = [];
+        let myInventory = [null, null, null, null, null, null];
+        let radarChart;
+
+        async function init() {
+            const res = await fetch(DATA_URL);
+            const json = await res.json();
+            // 전설템 이상만 필터링
+            allItems = Object.values(json.data).filter(i => i.gold.total > 1500 && !i.tags.includes("Consumable"));
+            renderList(allItems);
+        }
+
+        function renderList(list) {
+            const div = document.getElementById("itemList");
+            div.innerHTML = "";
+            list.forEach(i => {
+                const img = document.createElement("img");
+                img.src = IMG_URL + i.image.full;
+                img.className = "item-card";
+                img.title = i.name;
+                img.onclick = () => addItem(i);
+                div.appendChild(img);
+            });
+        }
+
+        function addItem(item) {
+            const idx = myInventory.indexOf(null);
+            if(idx > -1) { myInventory[idx] = item; update(); }
+        }
+        function removeItem(idx) { myInventory[idx] = null; update(); }
+
+        function update() {
+            const slots = document.querySelectorAll(".slot");
+            let stats = { "FlatPhysicalDamageMod":0, "FlatMagicDamageMod":0, "FlatHPPoolMod":0, "FlatArmorMod":0, "FlatSpellBlockMod":0 };
+            
+            myInventory.forEach((item, i) => {
+                slots[i].innerHTML = item ? `<img src="${IMG_URL + item.image.full}">` : "";
+                if(item) {
+                    for(let k in stats) stats[k] += (item.stats[k] || 0);
+                }
+            });
+
+            // 차트 및 텍스트 업데이트 (간략화)
+            document.getElementById("textStats").innerText = `공격력: ${stats.FlatPhysicalDamageMod} / 주문력: ${stats.FlatMagicDamageMod} / 체력: ${stats.FlatHPPoolMod}`;
+            updateChart(stats);
+        }
+
+        function updateChart(s) {
+            const ctx = document.getElementById('statChart').getContext('2d');
+            const data = [s.FlatPhysicalDamageMod, s.FlatMagicDamageMod, s.FlatHPPoolMod/10, s.FlatArmorMod, s.FlatSpellBlockMod];
+            if(radarChart) { radarChart.data.datasets[0].data = data; radarChart.update(); }
+            else {
+                radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: { labels: ['공격', '주문', '체력', '방어', '마방'], datasets: [{ label: '스탯', data: data, borderColor: '#c8aa6e', backgroundColor: 'rgba(200,170,110,0.2)' }] }
+                });
+            }
+        }
+        
+        function filterItems() {
+            const key = document.getElementById("search").value;
+            renderList(allItems.filter(i => i.name.includes(key)));
+        }
+
+        init();
+    </script>
+</body>
+</html>
