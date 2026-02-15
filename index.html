@@ -6,22 +6,25 @@
     <title>LoL 스마트 아이템 연구소</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* [테마: 헥스테크 퓨처] */
+        /* [테마: 딥 다크 & 골드] */
         body { 
             background-color: #050a10; color: #c8aa6e; 
             font-family: 'Pretendard', sans-serif; text-align: center; 
             padding: 20px; margin: 0;
         }
 
+        h1 { margin-bottom: 5px; text-shadow: 0 0 10px #c8aa6e; }
+        
         /* --- 1. 스마트 빌더 --- */
         .smart-builder {
             background: linear-gradient(145deg, #16213e, #0f1525);
             border: 2px solid #c8aa6e; border-radius: 15px;
-            padding: 20px; max-width: 800px; margin: 0 auto 30px auto;
+            padding: 20px; max-width: 800px; margin: 20px auto 40px auto;
             box-shadow: 0 0 20px rgba(200, 170, 110, 0.2);
         }
         .builder-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; display: block; color: #fff; }
         .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
+        .slider-group { margin-bottom: 5px; }
         .slider-label { display: flex; justify-content: space-between; color: #aaa; font-size: 14px; margin-bottom: 5px; }
         input[type=range] { width: 100%; accent-color: #c8aa6e; cursor: pointer; }
         
@@ -32,23 +35,7 @@
         }
         .generate-btn:hover { background: #fff; box-shadow: 0 0 15px #c8aa6e; transform: scale(1.02); }
 
-        /* --- 2. 프리셋 버튼 --- */
-        .preset-bar { margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 900px; margin: 0 auto; }
-        .preset-btn {
-            background: #1e2328; color: #aaa; border: 1px solid #444;
-            padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 13px; transition: 0.2s;
-        }
-        .preset-btn:hover { background: #005a82; color: #fff; border-color: #00d2d3; }
-        .category-header { 
-            width: 100%; color: #c8aa6e; font-weight:bold; font-size: 14px; 
-            margin: 15px 0 5px 0; border-bottom: 1px solid #333; padding-bottom: 5px;
-        }
-        .adc-btn { border-color: #c8aa6e; color: #c8aa6e; background: rgba(200, 170, 110, 0.1); }
-        .adc-btn:hover { background: #c8aa6e; color: #000; }
-        .jg-btn { border-color: #00d2d3; color: #00d2d3; background: rgba(0, 210, 211, 0.1); }
-        .jg-btn:hover { background: #00d2d3; color: #000; }
-
-        /* --- 3. 인벤토리 --- */
+        /* --- 2. 인벤토리 --- */
         .inventory-box { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
         .slot { 
             width: 60px; height: 60px; background: #010a13; border: 2px solid #333; 
@@ -58,15 +45,15 @@
         .slot:hover { border-color: #f0e6d2; }
         .slot-hint { position: absolute; font-size: 10px; color: #555; bottom: 2px; }
 
-        /* --- 4. 분석 결과 --- */
+        /* --- 3. 분석 결과 --- */
         .analysis-box { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 900px; margin: 0 auto; }
         .table-container { flex: 1; min-width: 300px; background: #111; border-radius: 10px; padding: 15px; border: 1px solid #333; }
         .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .stat-table td { padding: 6px; border-bottom: 1px solid #222; text-align: right; color: #c8aa6e; }
-        .stat-table .label { text-align: left; color: #aaa; }
+        .stat-table td { padding: 8px; border-bottom: 1px solid #222; text-align: right; color: #c8aa6e; font-weight: bold; }
+        .stat-table .label { text-align: left; color: #aaa; font-weight: normal; }
         .total-gold { color: gold; font-size: 18px; font-weight: bold; text-align: right; display: block; margin-bottom: 10px; }
 
-        /* --- 5. 필터 및 리스트 --- */
+        /* --- 4. 필터 및 리스트 --- */
         .filter-tabs { margin: 40px 0 15px 0; display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
         .tab-btn {
             background: #222; border: 1px solid #444; color: #888;
@@ -78,43 +65,27 @@
         .search-box input { padding: 10px; width: 300px; background: #222; border: 1px solid #444; color: white; text-align: center; margin-bottom: 20px; }
         
         .item-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 1000px; margin: 0 auto 50px auto; }
-        .item-card { width: 48px; height: 48px; cursor: pointer; border: 1px solid #333; overflow: hidden; }
-        .item-card:hover { border-color: gold; z-index: 10; }
+        .item-card { width: 48px; height: 48px; cursor: pointer; border: 1px solid #333; overflow: hidden; position: relative; }
+        .item-card:hover { transform: scale(1.2); border-color: gold; z-index: 10; }
         .item-card img { width: 100%; height: 100%; }
 
-        /* --- 🚀 [NEW] 상세 정보 툴팁 스타일 --- */
+        /* 툴팁 */
         #tooltip {
-            position: fixed;
-            display: none;
-            background: #010a13;
-            border: 2px solid #c8aa6e;
-            color: #a0a0a0;
-            padding: 15px;
-            width: 300px;
-            text-align: left;
-            z-index: 1000;
-            pointer-events: none; /* 마우스 이벤트 무시 */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            font-size: 13px;
-            line-height: 1.4;
+            position: fixed; display: none; background: #010a13; border: 2px solid #c8aa6e; color: #a0a0a0;
+            padding: 15px; width: 300px; text-align: left; z-index: 1000; pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-size: 13px; line-height: 1.4;
         }
         #tooltip h3 { color: #c8aa6e; margin: 0 0 5px 0; font-size: 16px; }
         #tooltip .gold { color: #ffd700; font-size: 12px; margin-bottom: 10px; display: block; }
-        
-        /* 라이엇 HTML 태그 스타일링 */
         #tooltip stats { color: #f0f0f0; display: block; margin-bottom: 10px; }
         #tooltip attention { color: #fff; font-weight: bold; }
         #tooltip passive { color: #fff; font-weight: bold; display: block; margin-top: 10px; }
-        #tooltip unique { color: #ffd700; }
-        #tooltip active { color: #ffd700; font-weight: bold; display: block; margin-top: 10px; }
-        #tooltip magicDamage { color: #00d2d3; }
-        #tooltip physicalDamage { color: #ff5e57; }
         
     </style>
 </head>
 <body>
 
-    <h1>🧠 LoL 아이템 연구소 <span style="font-size:0.5em; color:#555;">Ver 3.4</span></h1>
+    <h1>🧠 LoL 아이템 연구소 <span style="font-size:0.5em; color:#555;">Ver 3.5</span></h1>
 
     <div id="tooltip"></div>
 
@@ -126,31 +97,9 @@
             <div class="slider-group"><div class="slider-label"><span>🛡️ 탱킹</span> <span id="val_tank">0</span></div><input type="range" id="range_tank" min="0" max="10" value="0" oninput="updateRangeVal('val_tank', this.value)"></div>
             <div class="slider-group"><div class="slider-label"><span>⚡ 공속</span> <span id="val_as">0</span></div><input type="range" id="range_as" min="0" max="10" value="0" oninput="updateRangeVal('val_as', this.value)"></div>
             <div class="slider-group"><div class="slider-label"><span>💥 치명타</span> <span id="val_crit">0</span></div><input type="range" id="range_crit" min="0" max="10" value="0" oninput="updateRangeVal('val_crit', this.value)"></div>
-            <div class="slider-group"><div class="slider-label"><span>⏳ 쿨감</span> <span id="val_ah">0</span></div><input type="range" id="range_ah" min="0" max="10" value="0" oninput="updateRangeVal('val_ah', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span>⏳ 쿨감(스킬가속)</span> <span id="val_ah">0</span></div><input type="range" id="range_ah" min="0" max="10" value="0" oninput="updateRangeVal('val_ah', this.value)"></div>
         </div>
-        <button class="generate-btn" onclick="autoGenerateBuild()">조합 생성</button>
-    </div>
-
-    <div class="preset-bar">
-        <div class="category-header">🏹 원거리 딜러</div>
-        <button class="preset-btn adc-btn" onclick="applyPreset('adc_crit')">⚡ 치명타</button>
-        <button class="preset-btn adc-btn" onclick="applyPreset('adc_onhit')">🌪️ 공속</button>
-        <button class="preset-btn adc-btn" onclick="applyPreset('adc_lethality')">🗡️ 방관</button>
-        <button class="preset-btn adc-btn" onclick="applyPreset('adc_caster')">💧 스킬형</button>
-
-        <div class="category-header" style="color:#00d2d3">🌲 정글러</div>
-        <button class="preset-btn jg-btn" onclick="applyPreset('jg_ad')">🌪️ 육식(AD)</button>
-        <button class="preset-btn jg-btn" onclick="applyPreset('jg_ap')">🔥 누커(AP)</button>
-        <button class="preset-btn jg-btn" onclick="applyPreset('jg_tank')">🛡️ 탱커</button>
-        <button class="preset-btn jg-btn" onclick="applyPreset('jg_rpg')">⚔️ 성장형</button>
-
-        <div class="category-header">🔮 미드 / 탑 / 서폿</div>
-        <button class="preset-btn" onclick="applyPreset('mage_burst')">🔥 누커</button>
-        <button class="preset-btn" onclick="applyPreset('mage_poke')">☄️ 포킹</button>
-        <button class="preset-btn" onclick="applyPreset('assassin')">🗡️ 암살자</button>
-        <button class="preset-btn" onclick="applyPreset('bruiser')">🪓 브루저</button>
-        <button class="preset-btn" onclick="applyPreset('tank_hard')">🗿 퓨어탱</button>
-        <button class="preset-btn" onclick="applyPreset('sup_util')">🧚 유틸폿</button>
+        <button class="generate-btn" onclick="autoGenerateBuild()">조합 생성하기</button>
     </div>
 
     <div class="inventory-box">
@@ -199,26 +148,6 @@
         let displayedItems = [];
         let myInventory = [null, null, null, null, null, null];
         let radarChart;
-        let currentTab = 'all';
-
-        // 프리셋 (이전과 동일)
-        const PRESETS = {
-            'adc_crit': ["무한의 대검", "크라켄 학살자", "도미닉 경의 인사", "유령 무희", "피바라기", "광전사의 군화"],
-            'adc_onhit': ["구인수의 격노검", "몰락한 왕의 검", "마법사의 최후", "루난의 허리케인", "경계", "광전사의 군화"],
-            'adc_lethality': ["요우무의 유령검", "징수의 총", "밤의 끝자락", "세릴다의 원한", "원칙의 원형낫", "아이오니아 장화"],
-            'adc_caster': ["삼위일체", "마나무네", "쇼진의 창", "세릴다의 원한", "굶주린 히드라", "아이오니아 장화"],
-            'jg_ad': ["요우무의 유령검", "오만", "원칙의 원형낫", "밤의 끝자락", "세릴다의 원한", "기동력의 장화"],
-            'jg_ap': ["리치베인", "그림자불꽃", "라바돈의 죽음모자", "존야의 모래시계", "공허의 지팡이", "마법사의 신발"],
-            'jg_tank': ["태양불꽃 방패", "가시 갑옷", "해신 작쇼", "케이닉 루컨", "워모그의 갑옷", "판금 장화"],
-            'jg_rpg': ["크라켄 학살자", "몰락한 왕의 검", "구인수의 격노검", "마법사의 최후", "죽음의 무도", "광전사의 군화"],
-            'mage_burst': ["라바돈의 죽음모자", "루덴의 동반자", "그림자불꽃", "공허의 지팡이", "존야의 모래시계", "마법사의 신발"],
-            'mage_poke': ["리안드리의 고통", "지평선의 초점", "라일라이의 수정홀", "우주의 추진력", "모렐로노미콘", "명석함의 아이오니아 장화"],
-            'assassin': ["요우무의 유령검", "드락사르의 황혼검", "밤의 끝자락", "세릴다의 원한", "죽음의 무도", "기동력의 장화"],
-            'bruiser': ["삼위일체", "죽음의 무도", "스테락의 도전", "칠흑의 양날 도끼", "거대한 히드라", "판금 장화"],
-            'tank_hard': ["강철심장", "태양불꽃 방패", "가시 갑옷", "정령의 형상", "워모그의 갑옷", "판금 장화"],
-            'sup_util': ["슈렐리아의 군가", "불타는 향로", "흐르는 물의 지팡이", "구원", "미카엘의 축복", "기동력의 장화"],
-            'sup_tank': ["강철의 솔라리 펜던트", "기사의 맹세", "지크의 융합", "가시 갑옷", "얼어붙은 심장", "판금 장화"]
-        };
 
         async function init() {
             const res = await fetch(DATA_URL);
@@ -232,80 +161,25 @@
                 const isConsumable = item.tags && item.tags.includes("Consumable");
                 return !isConsumable && item.gold.total > 800;
             });
+
+            // 스킬 가속 데이터 강제 주입 (라이엇 데이터에 누락된 경우 설명문에서 추출)
+            allItems.forEach(item => {
+                if(!item.stats.AbilityHaste) {
+                    const match = item.description.match(/<attention>(\d+)<\/attention>\s*스킬 가속/);
+                    if(match) {
+                        item.stats.AbilityHaste = parseInt(match[1]);
+                    } else {
+                        item.stats.AbilityHaste = 0;
+                    }
+                }
+            });
+
             allItems.sort((a, b) => b.gold.total - a.gold.total);
             displayedItems = allItems;
             renderList();
         }
 
-        function filterCategory(tag) {
-            currentTab = tag;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if(tag === 'all') displayedItems = allItems;
-            else displayedItems = allItems.filter(item => item.tags && item.tags.includes(tag));
-            renderList();
-        }
-
-        function searchItems() {
-            const key = document.getElementById("search").value;
-            displayedItems = allItems.filter(i => i.name.includes(key));
-            renderList();
-        }
-
-        // --- 🚀 [NEW] 툴팁 기능 구현 ---
-        const tooltip = document.getElementById('tooltip');
-
-        function showTooltip(item, e) {
-            // 라이엇의 설명(description)에는 HTML 태그가 포함되어 있음
-            // <stats>...</stats> 이런 것들을 브라우저가 해석하도록 바로 innerHTML에 넣음
-            // 하지만 <br>처리가 가끔 꼬일 수 있어서 간단한 replace 처리
-            let desc = item.description;
-            
-            tooltip.innerHTML = `
-                <h3>${item.name}</h3>
-                <span class="gold">비용: ${item.gold.total} (${item.gold.base})</span>
-                <hr style="border-color: #444; margin: 5px 0;">
-                <div>${desc}</div>
-            `;
-            tooltip.style.display = 'block';
-            moveTooltip(e);
-        }
-
-        function moveTooltip(e) {
-            const x = e.clientX;
-            const y = e.clientY;
-            
-            // 화면 오른쪽 끝에 잘리는 것 방지
-            let left = x + 15;
-            if(left + 300 > window.innerWidth) left = x - 315;
-
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = (y + 15) + 'px';
-        }
-
-        function hideTooltip() {
-            tooltip.style.display = 'none';
-        }
-
-        function renderList() {
-            const div = document.getElementById("itemList");
-            div.innerHTML = "";
-            displayedItems.slice(0, 100).forEach(i => {
-                const img = document.createElement("img");
-                img.src = IMG_URL + i.image.full;
-                img.className = "item-card";
-                
-                // 이벤트 리스너 추가 (클릭: 추가, 호버: 툴팁)
-                img.onclick = () => addItem(i);
-                img.onmouseenter = (e) => showTooltip(i, e);
-                img.onmousemove = (e) => moveTooltip(e);
-                img.onmouseleave = () => hideTooltip();
-                
-                div.appendChild(img);
-            });
-        }
-
-        // --- 기존 로직들 (빌더, 인벤토리, 차트) ---
+        // --- 🚀 스킬 가속 로직 수정 ---
         function autoGenerateBuild() {
             const weights = {
                 ad: parseInt(document.getElementById('range_ad').value),
@@ -315,6 +189,7 @@
                 crit: parseInt(document.getElementById('range_crit').value),
                 ah: parseInt(document.getElementById('range_ah').value)
             };
+
             const calculateScore = (item) => {
                 let score = 0;
                 if(item.stats.FlatPhysicalDamageMod) score += item.stats.FlatPhysicalDamageMod * weights.ad * 2;
@@ -324,21 +199,27 @@
                 if(item.stats.FlatSpellBlockMod) score += item.stats.FlatSpellBlockMod * weights.tank * 2;
                 if(item.stats.PercentAttackSpeedMod) score += (item.stats.PercentAttackSpeedMod * 100) * weights.as;
                 if(item.stats.FlatCritChanceMod) score += (item.stats.FlatCritChanceMod * 100) * weights.crit;
-                if(item.tags && item.tags.includes("CooldownReduction")) score += 20 * weights.ah;
+                // 스킬 가속 (AH)
+                if(item.stats.AbilityHaste) score += item.stats.AbilityHaste * weights.ah * 1.5;
+                
                 return score;
             };
+
             const legendaries = allItems
                 .filter(i => !i.tags.includes("Boots") && i.gold.total > 2000)
                 .map(item => ({ item, score: calculateScore(item) }))
                 .sort((a, b) => b.score - a.score);
+
             let bestBoot = "판금 장화";
             if (weights.ap > weights.ad) bestBoot = "마법사의 신발";
             if (weights.as > 5 || weights.crit > 5) bestBoot = "광전사의 군화";
             if (weights.ah > 6) bestBoot = "명석함의 아이오니아 장화";
             if (weights.ad > 6 && weights.tank < 3) bestBoot = "기동력의 장화";
+
             myInventory = [null, null, null, null, null, null];
             const bootItem = allItems.find(i => i.name === bestBoot);
             if(bootItem) myInventory[5] = bootItem;
+
             let slot = 0;
             let addedNames = new Set();
             for(let i=0; i < legendaries.length; i++) {
@@ -353,25 +234,15 @@
             updateUI();
         }
 
-        function updateRangeVal(id, val) { document.getElementById(id).innerText = val; }
-        function addItem(item) { const idx = myInventory.indexOf(null); if(idx > -1) { myInventory[idx] = item; updateUI(); } }
-        function removeItem(idx) { myInventory[idx] = null; updateUI(); }
-        function applyPreset(type) {
-            myInventory = [null, null, null, null, null, null];
-            const names = PRESETS[type];
-            let slot = 0;
-            if(names) {
-                names.forEach(name => {
-                    const item = allItems.find(i => i.name === name);
-                    if(item && slot < 6) { myInventory[slot] = item; slot++; }
-                });
-            }
-            updateUI();
-        }
         function updateUI() {
             const slots = document.querySelectorAll(".slot");
             let totalGold = 0;
-            let stats = { "공격력":0, "주문력":0, "체력":0, "방어력":0, "마법저항":0, "공속":0, "치명타":0, "이동속도":0 };
+            // 스탯 집계 변수
+            let stats = { 
+                "공격력":0, "주문력":0, "체력":0, "방어력":0, "마법저항":0, 
+                "공속":0, "치명타":0, "이동속도":0, "스킬가속": 0 
+            };
+
             myInventory.forEach((item, i) => {
                 slots[i].innerHTML = item ? `<img src="${IMG_URL + item.image.full}" onmouseenter="showTooltip(myInventory[${i}], event)" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()">` : "";
                 if(item) {
@@ -384,8 +255,10 @@
                     stats["공속"] += item.stats.PercentAttackSpeedMod || 0;
                     stats["치명타"] += item.stats.FlatCritChanceMod || 0;
                     stats["이동속도"] += item.stats.FlatMovementSpeedMod || 0;
+                    stats["스킬가속"] += item.stats.AbilityHaste || 0; // 스킬 가속 추가
                 }
             });
+
             document.getElementById("totalPrice").innerText = totalGold.toLocaleString() + " G";
             const tbody = document.getElementById("statBody");
             tbody.innerHTML = "";
@@ -398,20 +271,61 @@
             }
             updateChart(stats);
         }
+
         function updateChart(s) {
             const ctx = document.getElementById('statChart').getContext('2d');
+            // 차트에는 6개축만 (가속 제외 or 포함 가능, 여기선 깔끔함을 위해 기존 유지 + 가속은 표에서 확인)
             const data = [s["공격력"], s["주문력"], s["체력"]/10, s["방어력"], s["마법저항"], s["공속"]*100];
+            
             if(radarChart) { radarChart.data.datasets[0].data = data; radarChart.update(); }
             else {
                 radarChart = new Chart(ctx, {
                     type: 'radar',
                     data: {
                         labels: ['공격', '주문', '체력/10', '방어', '마방', '공속'],
-                        datasets: [{ label: '스탯', data: data, backgroundColor: 'rgba(200, 170, 110, 0.2)', borderColor: '#c8aa6e', pointBackgroundColor: '#fff' }]
+                        datasets: [{ label: '스탯 밸런스', data: data, backgroundColor: 'rgba(200, 170, 110, 0.2)', borderColor: '#c8aa6e', pointBackgroundColor: '#fff' }]
                     },
                     options: { scales: { r: { grid: { color: '#333' }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
                 });
             }
+        }
+
+        // 공통 UI
+        function updateRangeVal(id, val) { document.getElementById(id).innerText = val; }
+        function addItem(item) { const idx = myInventory.indexOf(null); if(idx > -1) { myInventory[idx] = item; updateUI(); } }
+        function removeItem(idx) { myInventory[idx] = null; updateUI(); }
+        function filterCategory(tag) {
+            currentTab = tag;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if(tag === 'all') displayedItems = allItems;
+            else displayedItems = allItems.filter(item => item.tags && item.tags.includes(tag));
+            renderList();
+        }
+        function searchItems() {
+            const key = document.getElementById("search").value;
+            displayedItems = allItems.filter(i => i.name.includes(key));
+            renderList();
+        }
+        const tooltip = document.getElementById('tooltip');
+        function showTooltip(item, e) {
+            tooltip.innerHTML = `<h3>${item.name}</h3><span class="gold">비용: ${item.gold.total}</span><hr style="border-color:#444; margin:5px 0;"><div>${item.description}</div>`;
+            tooltip.style.display = 'block'; moveTooltip(e);
+        }
+        function moveTooltip(e) {
+            let left = e.clientX + 15;
+            if(left + 300 > window.innerWidth) left = e.clientX - 315;
+            tooltip.style.left = left + 'px'; tooltip.style.top = (e.clientY + 15) + 'px';
+        }
+        function hideTooltip() { tooltip.style.display = 'none'; }
+        function renderList() {
+            const div = document.getElementById("itemList"); div.innerHTML = "";
+            displayedItems.slice(0, 100).forEach(i => {
+                const img = document.createElement("img"); img.src = IMG_URL + i.image.full; img.className = "item-card";
+                img.onclick = () => addItem(i);
+                img.onmouseenter = (e) => showTooltip(i, e); img.onmousemove = (e) => moveTooltip(e); img.onmouseleave = () => hideTooltip();
+                div.appendChild(img);
+            });
         }
         init();
     </script>
