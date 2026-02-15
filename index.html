@@ -3,133 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoL 스마트 아이템 연구소</title>
+    <title>LoL 스마트 아이템 연구소 V4</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* [테마: 딥 다크 & 골드] */
+        /* [테마: 다크 & 골드] */
         body { 
-            background-color: #050a10; color: #c8aa6e; 
+            background-color: #091428; color: #f0e6d2; 
             font-family: 'Pretendard', sans-serif; text-align: center; 
             padding: 20px; margin: 0;
         }
 
-        h1 { margin-bottom: 5px; text-shadow: 0 0 10px #c8aa6e; }
+        h1 { margin-bottom: 5px; color: #c8aa6e; text-shadow: 0 0 10px rgba(200, 170, 110, 0.5); }
         
-        /* --- 1. 스마트 빌더 --- */
+        /* --- 1. 스마트 빌더 (컨트롤 패널) --- */
         .smart-builder {
-            background: linear-gradient(145deg, #16213e, #0f1525);
-            border: 2px solid #c8aa6e; border-radius: 15px;
+            background: rgba(16, 28, 45, 0.9);
+            border: 1px solid #c8aa6e; border-radius: 8px;
             padding: 20px; max-width: 800px; margin: 20px auto 40px auto;
-            box-shadow: 0 0 20px rgba(200, 170, 110, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
-        .builder-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; display: block; color: #fff; }
-        .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
-        .slider-group { margin-bottom: 5px; }
-        .slider-label { display: flex; justify-content: space-between; color: #aaa; font-size: 14px; margin-bottom: 5px; }
-        input[type=range] { width: 100%; accent-color: #c8aa6e; cursor: pointer; }
+        .builder-title { font-size: 1.2em; font-weight: bold; margin-bottom: 20px; display: block; color: #fff; }
         
-        .generate-btn {
-            background: #c8aa6e; color: #000; font-weight: bold; font-size: 16px;
-            border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer;
-            margin-top: 20px; transition: 0.3s; width: 100%;
+        .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; }
+        .slider-group { margin-bottom: 5px; }
+        .slider-label { display: flex; justify-content: space-between; color: #a09b8c; font-size: 14px; margin-bottom: 5px; }
+        .slider-label span:last-child { color: #c8aa6e; font-weight: bold; }
+        
+        input[type=range] { 
+            width: 100%; height: 6px; background: #333; 
+            border-radius: 3px; outline: none; appearance: none; cursor: pointer;
         }
-        .generate-btn:hover { background: #fff; box-shadow: 0 0 15px #c8aa6e; transform: scale(1.02); }
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none; width: 18px; height: 18px; 
+            background: #c8aa6e; border-radius: 50%; cursor: pointer;
+            box-shadow: 0 0 10px rgba(200,170,110,0.8);
+        }
+
+        .generate-btn {
+            background: linear-gradient(180deg, #c8aa6e 0%, #a1834a 100%);
+            color: #091428; font-weight: bold; font-size: 16px;
+            border: 1px solid #f0e6d2; padding: 12px 40px; border-radius: 4px; 
+            cursor: pointer; margin-top: 25px; transition: 0.2s;
+        }
+        .generate-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         /* --- 2. 인벤토리 --- */
-        .inventory-box { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .inventory-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
         .slot { 
-            width: 60px; height: 60px; background: #010a13; border: 2px solid #333; 
-            border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative;
+            width: 64px; height: 64px; background: #010a13; border: 2px solid #3c3c41; 
+            border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative;
         }
-        .slot img { width: 100%; height: 100%; border-radius: 6px; }
-        .slot:hover { border-color: #f0e6d2; }
-        .slot-hint { position: absolute; font-size: 10px; color: #555; bottom: 2px; }
+        .slot img { width: 100%; height: 100%; }
+        .slot:hover { border-color: #c8aa6e; box-shadow: 0 0 15px rgba(200, 170, 110, 0.3); }
 
-        /* --- 3. 분석 결과 --- */
+        /* --- 3. 분석 결과 (표) --- */
         .analysis-box { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 900px; margin: 0 auto; }
-        .table-container { flex: 1; min-width: 300px; background: #111; border-radius: 10px; padding: 15px; border: 1px solid #333; }
+        .table-container { 
+            flex: 1; min-width: 320px; background: #111; 
+            border: 1px solid #444; padding: 15px; 
+        }
         .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .stat-table td { padding: 8px; border-bottom: 1px solid #222; text-align: right; color: #c8aa6e; font-weight: bold; }
-        .stat-table .label { text-align: left; color: #aaa; font-weight: normal; }
-        .total-gold { color: gold; font-size: 18px; font-weight: bold; text-align: right; display: block; margin-bottom: 10px; }
+        .stat-table td { padding: 8px; border-bottom: 1px solid #222; text-align: right; color: #f0e6d2; font-weight: bold; }
+        .stat-table .label { text-align: left; color: #888; font-weight: normal; }
+        .stat-table .highlight { color: #00d2d3; } /* 스킬가속 등 강조 */
 
-        /* --- 4. 필터 및 리스트 --- */
+        /* --- 4. 필터 탭 (NEW) --- */
         .filter-tabs { margin: 40px 0 15px 0; display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
         .tab-btn {
-            background: #222; border: 1px solid #444; color: #888;
-            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold;
+            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #888;
+            padding: 8px 16px; cursor: pointer; font-weight: bold; transition: 0.2s;
         }
-        .tab-btn.active { background: #c8aa6e; color: #000; border-color: #c8aa6e; }
-        .tab-btn:hover { border-color: #c8aa6e; }
+        .tab-btn:hover { color: #c8aa6e; border-color: #666; }
+        .tab-btn.active { background: #c8aa6e; color: #091428; border-color: #c8aa6e; }
 
-        .search-box input { padding: 10px; width: 300px; background: #222; border: 1px solid #444; color: white; text-align: center; margin-bottom: 20px; }
-        
+        .search-box input { 
+            padding: 10px; width: 300px; background: #010a13; border: 1px solid #444; 
+            color: white; text-align: center; margin-bottom: 20px; outline: none;
+        }
+        .search-box input:focus { border-color: #c8aa6e; }
+
+        /* 아이템 리스트 */
         .item-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 1000px; margin: 0 auto 50px auto; }
-        .item-card { width: 48px; height: 48px; cursor: pointer; border: 1px solid #333; overflow: hidden; position: relative; }
-        .item-card:hover { transform: scale(1.2); border-color: gold; z-index: 10; }
+        .item-card { width: 48px; height: 48px; cursor: pointer; border: 1px solid #333; overflow: hidden; }
+        .item-card:hover { border-color: #c8aa6e; transform: scale(1.1); z-index: 10; }
         .item-card img { width: 100%; height: 100%; }
 
         /* 툴팁 */
         #tooltip {
-            position: fixed; display: none; background: #010a13; border: 2px solid #c8aa6e; color: #a0a0a0;
-            padding: 15px; width: 300px; text-align: left; z-index: 1000; pointer-events: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-size: 13px; line-height: 1.4;
+            position: fixed; display: none; background: rgba(1, 10, 19, 0.95); 
+            border: 1px solid #c8aa6e; color: #a0a0a0; padding: 15px; width: 320px; 
+            text-align: left; z-index: 1000; pointer-events: none; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-size: 12px; line-height: 1.4;
         }
-        #tooltip h3 { color: #c8aa6e; margin: 0 0 5px 0; font-size: 16px; }
+        #tooltip h3 { color: #c8aa6e; margin: 0 0 5px 0; font-size: 15px; }
         #tooltip .gold { color: #ffd700; font-size: 12px; margin-bottom: 10px; display: block; }
         #tooltip stats { color: #f0f0f0; display: block; margin-bottom: 10px; }
-        #tooltip attention { color: #fff; font-weight: bold; }
-        #tooltip passive { color: #fff; font-weight: bold; display: block; margin-top: 10px; }
+        #tooltip attention { color: #fff; font-weight: bold; } /* 라이엇 태그 */
         
     </style>
 </head>
 <body>
 
-    <h1>🧠 LoL 아이템 연구소 <span style="font-size:0.5em; color:#555;">Ver 3.5</span></h1>
+    <h1>⚖️ LoL 아이템 연구소 <span style="font-size:0.6em; color:#555;">V4.0</span></h1>
 
     <div id="tooltip"></div>
 
     <div class="smart-builder">
-        <span class="builder-title">🤖 AI 맞춤 자동 조합</span>
+        <span class="builder-title">🧠 AI 하이브리드 자동 조합기</span>
         <div class="slider-grid">
-            <div class="slider-group"><div class="slider-label"><span>⚔️ 공격력</span> <span id="val_ad">0</span></div><input type="range" id="range_ad" min="0" max="10" value="0" oninput="updateRangeVal('val_ad', this.value)"></div>
-            <div class="slider-group"><div class="slider-label"><span>🔮 주문력</span> <span id="val_ap">0</span></div><input type="range" id="range_ap" min="0" max="10" value="0" oninput="updateRangeVal('val_ap', this.value)"></div>
-            <div class="slider-group"><div class="slider-label"><span>🛡️ 탱킹</span> <span id="val_tank">0</span></div><input type="range" id="range_tank" min="0" max="10" value="0" oninput="updateRangeVal('val_tank', this.value)"></div>
-            <div class="slider-group"><div class="slider-label"><span>⚡ 공속</span> <span id="val_as">0</span></div><input type="range" id="range_as" min="0" max="10" value="0" oninput="updateRangeVal('val_as', this.value)"></div>
-            <div class="slider-group"><div class="slider-label"><span>💥 치명타</span> <span id="val_crit">0</span></div><input type="range" id="range_crit" min="0" max="10" value="0" oninput="updateRangeVal('val_crit', this.value)"></div>
-            <div class="slider-group"><div class="slider-label"><span>⏳ 쿨감(스킬가속)</span> <span id="val_ah">0</span></div><input type="range" id="range_ah" min="0" max="10" value="0" oninput="updateRangeVal('val_ah', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span>⚔️ 공격력 (AD)</span> <span id="val_ad">0</span></div><input type="range" id="range_ad" min="0" max="10" value="0" oninput="updateRangeVal('val_ad', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span>🔮 주문력 (AP)</span> <span id="val_ap">0</span></div><input type="range" id="range_ap" min="0" max="10" value="0" oninput="updateRangeVal('val_ap', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span>🛡️ 방어/체력</span> <span id="val_tank">0</span></div><input type="range" id="range_tank" min="0" max="10" value="0" oninput="updateRangeVal('val_tank', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span>⚡ 공격 속도</span> <span id="val_as">0</span></div><input type="range" id="range_as" min="0" max="10" value="0" oninput="updateRangeVal('val_as', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span>💥 치명타 확률</span> <span id="val_crit">0</span></div><input type="range" id="range_crit" min="0" max="10" value="0" oninput="updateRangeVal('val_crit', this.value)"></div>
+            <div class="slider-group"><div class="slider-label"><span style="color:#00d2d3">⏳ 스킬 가속 (쿨감)</span> <span id="val_ah" style="color:#00d2d3">0</span></div><input type="range" id="range_ah" min="0" max="10" value="0" oninput="updateRangeVal('val_ah', this.value)"></div>
         </div>
-        <button class="generate-btn" onclick="autoGenerateBuild()">조합 생성하기</button>
+        <button class="generate-btn" onclick="autoGenerateBuild()">🔀 최적의 조합 찾기</button>
     </div>
 
     <div class="inventory-box">
-        <div class="slot" onclick="removeItem(0)"><span class="slot-hint">1</span></div>
-        <div class="slot" onclick="removeItem(1)"><span class="slot-hint">2</span></div>
-        <div class="slot" onclick="removeItem(2)"><span class="slot-hint">3</span></div>
-        <div class="slot" onclick="removeItem(3)"><span class="slot-hint">4</span></div>
-        <div class="slot" onclick="removeItem(4)"><span class="slot-hint">5</span></div>
-        <div class="slot" onclick="removeItem(5)"><span class="slot-hint">6</span></div>
+        <div class="slot" onclick="removeItem(0)"></div>
+        <div class="slot" onclick="removeItem(1)"></div>
+        <div class="slot" onclick="removeItem(2)"></div>
+        <div class="slot" onclick="removeItem(3)"></div>
+        <div class="slot" onclick="removeItem(4)"></div>
+        <div class="slot" onclick="removeItem(5)"></div>
     </div>
 
     <div class="analysis-box">
         <div class="table-container">
-            <span class="total-gold" id="totalPrice">0 G</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="color:#aaa;">총 가격</span>
+                <span id="totalPrice" style="color:#ffd700; font-weight:bold;">0 G</span>
+            </div>
             <table class="stat-table">
-                <tbody id="statBody"><tr><td colspan="2" style="text-align:center">아이템을 추가하세요</td></tr></tbody>
+                <tbody id="statBody"><tr><td colspan="2" style="text-align:center; color:#555;">아이템을 추가하면 통계가 표시됩니다.</td></tr></tbody>
             </table>
         </div>
-        <div style="width:300px; height:300px; background:#111; padding:10px; border-radius:10px;">
+        <div style="width:300px; height:300px; background:#010a13; padding:10px; border:1px solid #333;">
             <canvas id="statChart"></canvas>
         </div>
     </div>
 
     <div class="filter-tabs">
         <button class="tab-btn active" onclick="filterCategory('all')">전체</button>
-        <button class="tab-btn" onclick="filterCategory('Damage')">⚔️ 공격력</button>
-        <button class="tab-btn" onclick="filterCategory('SpellDamage')">🔮 주문력</button>
-        <button class="tab-btn" onclick="filterCategory('Defense')">🛡️ 방어</button>
-        <button class="tab-btn" onclick="filterCategory('AttackSpeed')">⚡ 공속</button>
-        <button class="tab-btn" onclick="filterCategory('CooldownReduction')">⏳ 쿨감</button>
+        <button class="tab-btn" onclick="filterCategory('Damage')">⚔️ 물리(AD)</button>
+        <button class="tab-btn" onclick="filterCategory('SpellDamage')">🔮 마법(AP)</button>
+        <button class="tab-btn" onclick="filterCategory('Defense')">🛡️ 탱커/방어</button>
+        <button class="tab-btn" onclick="filterCategory('GoldPer')">🏥 서포터</button>
         <button class="tab-btn" onclick="filterCategory('Boots')">👟 신발</button>
     </div>
 
@@ -154,23 +175,22 @@
             const json = await res.json();
             
             allItems = Object.values(json.data).filter(item => {
-                const isSummonersRift = item.maps && item.maps['11'] === true;
-                if(!isSummonersRift) return false;
-                const isOrnn = item.description && (item.description.includes('걸작') || item.requiredAlly === 'Ornn');
-                if(isOrnn) return false;
+                // 1. 소환사의 협곡만
+                if (!item.maps || item.maps['11'] !== true) return false;
+                // 2. 오른/소모품/기본템 제거
                 const isConsumable = item.tags && item.tags.includes("Consumable");
-                return !isConsumable && item.gold.total > 800;
+                const isOrnn = item.description && (item.description.includes('걸작') || item.requiredAlly === 'Ornn');
+                // 3. 최소 가격 (하위템 숨김)
+                return !isConsumable && !isOrnn && item.gold.total > 800;
             });
 
-            // 스킬 가속 데이터 강제 주입 (라이엇 데이터에 누락된 경우 설명문에서 추출)
+            // 🔥 [중요] 스킬 가속 데이터 강제 파싱 (설명글에서 숫자 추출)
             allItems.forEach(item => {
                 if(!item.stats.AbilityHaste) {
+                    // "스킬 가속"이라는 단어 앞의 숫자를 찾음
                     const match = item.description.match(/<attention>(\d+)<\/attention>\s*스킬 가속/);
-                    if(match) {
-                        item.stats.AbilityHaste = parseInt(match[1]);
-                    } else {
-                        item.stats.AbilityHaste = 0;
-                    }
+                    if(match) item.stats.AbilityHaste = parseInt(match[1]);
+                    else item.stats.AbilityHaste = 0;
                 }
             });
 
@@ -179,7 +199,7 @@
             renderList();
         }
 
-        // --- 🚀 스킬 가속 로직 수정 ---
+        // --- 🧠 스마트 조합 로직 (중복 제거 + 하이브리드) ---
         function autoGenerateBuild() {
             const weights = {
                 ad: parseInt(document.getElementById('range_ad').value),
@@ -190,54 +210,73 @@
                 ah: parseInt(document.getElementById('range_ah').value)
             };
 
+            // 점수 계산 (가중치 적용)
             const calculateScore = (item) => {
                 let score = 0;
                 if(item.stats.FlatPhysicalDamageMod) score += item.stats.FlatPhysicalDamageMod * weights.ad * 2;
                 if(item.stats.FlatMagicDamageMod) score += item.stats.FlatMagicDamageMod * weights.ap * 2;
+                
+                // 탱킹 점수
                 if(item.stats.FlatHPPoolMod) score += (item.stats.FlatHPPoolMod / 10) * weights.tank;
                 if(item.stats.FlatArmorMod) score += item.stats.FlatArmorMod * weights.tank * 2;
                 if(item.stats.FlatSpellBlockMod) score += item.stats.FlatSpellBlockMod * weights.tank * 2;
+                
+                // 공속/치명타
                 if(item.stats.PercentAttackSpeedMod) score += (item.stats.PercentAttackSpeedMod * 100) * weights.as;
                 if(item.stats.FlatCritChanceMod) score += (item.stats.FlatCritChanceMod * 100) * weights.crit;
-                // 스킬 가속 (AH)
-                if(item.stats.AbilityHaste) score += item.stats.AbilityHaste * weights.ah * 1.5;
+                
+                // 스킬가속
+                if(item.stats.AbilityHaste) score += item.stats.AbilityHaste * weights.ah * 2.0;
                 
                 return score;
             };
 
-            const legendaries = allItems
+            // 1. 점수 매기고 정렬 (신발 제외, 전설급 이상)
+            const rankedItems = allItems
                 .filter(i => !i.tags.includes("Boots") && i.gold.total > 2000)
                 .map(item => ({ item, score: calculateScore(item) }))
                 .sort((a, b) => b.score - a.score);
 
-            let bestBoot = "판금 장화";
+            // 2. 신발 선택 로직
+            let bestBoot = "판금 장화"; // 기본
             if (weights.ap > weights.ad) bestBoot = "마법사의 신발";
             if (weights.as > 5 || weights.crit > 5) bestBoot = "광전사의 군화";
             if (weights.ah > 6) bestBoot = "명석함의 아이오니아 장화";
             if (weights.ad > 6 && weights.tank < 3) bestBoot = "기동력의 장화";
+            if (weights.tank > 6) bestBoot = "판금 장화";
 
+            // 3. 인벤토리 채우기 (🚫 중복 방지 로직)
             myInventory = [null, null, null, null, null, null];
-            const bootItem = allItems.find(i => i.name === bestBoot);
-            if(bootItem) myInventory[5] = bootItem;
+            let addedNames = new Set(); // 이름 저장소
 
+            // 신발 먼저 넣기 (6번 슬롯)
+            const bootObj = allItems.find(i => i.name === bestBoot);
+            if(bootObj) {
+                myInventory[5] = bootObj;
+                addedNames.add(bootObj.name);
+            }
+
+            // 나머지 5칸 채우기
             let slot = 0;
-            let addedNames = new Set();
-            for(let i=0; i < legendaries.length; i++) {
-                if(slot >= 5) break;
-                const cand = legendaries[i].item;
-                if(!addedNames.has(cand.name)) {
-                    myInventory[slot] = cand;
-                    addedNames.add(cand.name);
+            for(let i=0; i < rankedItems.length; i++) {
+                if(slot >= 5) break; // 5개 차면 끝
+                
+                const candidate = rankedItems[i].item;
+                
+                // [핵심] 이미 넣은 아이템인지 체크!
+                if(!addedNames.has(candidate.name)) {
+                    myInventory[slot] = candidate;
+                    addedNames.add(candidate.name);
                     slot++;
                 }
             }
             updateUI();
         }
 
+        // --- UI 업데이트 ---
         function updateUI() {
             const slots = document.querySelectorAll(".slot");
             let totalGold = 0;
-            // 스탯 집계 변수
             let stats = { 
                 "공격력":0, "주문력":0, "체력":0, "방어력":0, "마법저항":0, 
                 "공속":0, "치명타":0, "이동속도":0, "스킬가속": 0 
@@ -255,58 +294,66 @@
                     stats["공속"] += item.stats.PercentAttackSpeedMod || 0;
                     stats["치명타"] += item.stats.FlatCritChanceMod || 0;
                     stats["이동속도"] += item.stats.FlatMovementSpeedMod || 0;
-                    stats["스킬가속"] += item.stats.AbilityHaste || 0; // 스킬 가속 추가
+                    stats["스킬가속"] += item.stats.AbilityHaste || 0;
                 }
             });
 
             document.getElementById("totalPrice").innerText = totalGold.toLocaleString() + " G";
             const tbody = document.getElementById("statBody");
             tbody.innerHTML = "";
+            
             for(let [k, v] of Object.entries(stats)) {
                 if(v > 0) {
                     let displayV = v;
+                    let rowClass = "";
                     if(k === "공속" || k === "치명타") displayV = (v * 100).toFixed(0) + "%";
-                    tbody.innerHTML += `<tr><td class="label">${k}</td><td>+${displayV}</td></tr>`;
+                    if(k === "스킬가속") rowClass = "highlight"; // 스킬가속 강조
+
+                    tbody.innerHTML += `<tr><td class="label ${rowClass}">${k}</td><td class="${rowClass}">+${displayV}</td></tr>`;
                 }
             }
             updateChart(stats);
         }
 
+        function filterCategory(tag) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if(tag === 'all') displayedItems = allItems;
+            else if(tag === 'Defense') {
+                // 탱커는 체력 or 방어 or 마방
+                displayedItems = allItems.filter(i => i.tags && (i.tags.includes('Health') || i.tags.includes('Armor') || i.tags.includes('SpellBlock')));
+            } else {
+                displayedItems = allItems.filter(i => i.tags && i.tags.includes(tag));
+            }
+            renderList();
+        }
+
+        // [기본 함수들: 차트, 툴팁, 검색 등 기존과 동일 유지]
+        function updateRangeVal(id, val) { document.getElementById(id).innerText = val; }
+        function addItem(item) { const idx = myInventory.indexOf(null); if(idx > -1) { myInventory[idx] = item; updateUI(); } }
+        function removeItem(idx) { myInventory[idx] = null; updateUI(); }
+        function searchItems() {
+            const key = document.getElementById("search").value;
+            displayedItems = allItems.filter(i => i.name.includes(key));
+            renderList();
+        }
         function updateChart(s) {
             const ctx = document.getElementById('statChart').getContext('2d');
-            // 차트에는 6개축만 (가속 제외 or 포함 가능, 여기선 깔끔함을 위해 기존 유지 + 가속은 표에서 확인)
             const data = [s["공격력"], s["주문력"], s["체력"]/10, s["방어력"], s["마법저항"], s["공속"]*100];
-            
             if(radarChart) { radarChart.data.datasets[0].data = data; radarChart.update(); }
             else {
                 radarChart = new Chart(ctx, {
                     type: 'radar',
                     data: {
                         labels: ['공격', '주문', '체력/10', '방어', '마방', '공속'],
-                        datasets: [{ label: '스탯 밸런스', data: data, backgroundColor: 'rgba(200, 170, 110, 0.2)', borderColor: '#c8aa6e', pointBackgroundColor: '#fff' }]
+                        datasets: [{ label: '스탯', data: data, backgroundColor: 'rgba(200, 170, 110, 0.2)', borderColor: '#c8aa6e', pointBackgroundColor: '#fff' }]
                     },
                     options: { scales: { r: { grid: { color: '#333' }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
                 });
             }
         }
-
-        // 공통 UI
-        function updateRangeVal(id, val) { document.getElementById(id).innerText = val; }
-        function addItem(item) { const idx = myInventory.indexOf(null); if(idx > -1) { myInventory[idx] = item; updateUI(); } }
-        function removeItem(idx) { myInventory[idx] = null; updateUI(); }
-        function filterCategory(tag) {
-            currentTab = tag;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if(tag === 'all') displayedItems = allItems;
-            else displayedItems = allItems.filter(item => item.tags && item.tags.includes(tag));
-            renderList();
-        }
-        function searchItems() {
-            const key = document.getElementById("search").value;
-            displayedItems = allItems.filter(i => i.name.includes(key));
-            renderList();
-        }
+        // 툴팁 관련
         const tooltip = document.getElementById('tooltip');
         function showTooltip(item, e) {
             tooltip.innerHTML = `<h3>${item.name}</h3><span class="gold">비용: ${item.gold.total}</span><hr style="border-color:#444; margin:5px 0;"><div>${item.description}</div>`;
@@ -314,7 +361,7 @@
         }
         function moveTooltip(e) {
             let left = e.clientX + 15;
-            if(left + 300 > window.innerWidth) left = e.clientX - 315;
+            if(left + 320 > window.innerWidth) left = e.clientX - 335;
             tooltip.style.left = left + 'px'; tooltip.style.top = (e.clientY + 15) + 'px';
         }
         function hideTooltip() { tooltip.style.display = 'none'; }
