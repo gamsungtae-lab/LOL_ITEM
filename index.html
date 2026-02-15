@@ -3,369 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PC LoL 아이템 연구소</title>
+    <title>LoL 스마트 아이템 연구소</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* [테마: 헥스테크 골드 & 다크 네이비] */
+        /* [테마: 헥스테크 퓨처] */
         body { 
-            background-color: #091428; 
-            color: #c8aa6e; 
-            font-family: 'Pretendard', 'Noto Sans KR', sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            margin: 0;
+            background-color: #050a10; color: #c8aa6e; 
+            font-family: 'Pretendard', sans-serif; text-align: center; 
+            padding: 20px; margin: 0;
         }
 
-        h1 { margin-bottom: 5px; text-shadow: 0 0 10px #c8aa6e; }
-        p { color: #888; font-size: 14px; margin-bottom: 30px; }
+        /* --- 1. 스마트 빌더 (슬라이더 영역) --- */
+        .smart-builder {
+            background: linear-gradient(145deg, #16213e, #0f1525);
+            border: 2px solid #c8aa6e; border-radius: 15px;
+            padding: 20px; max-width: 800px; margin: 0 auto 30px auto;
+            box-shadow: 0 0 20px rgba(200, 170, 110, 0.2);
+        }
+        .builder-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; display: block; color: #fff; }
+        .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
+        .slider-group { margin-bottom: 5px; }
+        .slider-label { display: flex; justify-content: space-between; color: #aaa; font-size: 14px; margin-bottom: 5px; }
+        input[type=range] { width: 100%; accent-color: #c8aa6e; cursor: pointer; }
+        
+        .generate-btn {
+            background: #c8aa6e; color: #000; font-weight: bold; font-size: 16px;
+            border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer;
+            margin-top: 20px; transition: 0.3s; width: 100%;
+        }
+        .generate-btn:hover { background: #fff; box-shadow: 0 0 15px #c8aa6e; transform: scale(1.02); }
 
-        /* --- 1. 자동 조합 버튼 영역 --- */
-        .preset-container { margin-bottom: 30px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid #444; display: inline-block; }
-        .preset-title { font-size: 14px; color: #fff; margin-bottom: 10px; display: block; font-weight: bold; }
+        /* --- 2. 클래스별 프리셋 버튼 --- */
+        .preset-bar { margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 900px; margin: 0 auto 30px auto; }
         .preset-btn {
-            background: #1e2328; color: #cdbe91; border: 1px solid #c8aa6e;
-            padding: 8px 16px; margin: 4px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s;
+            background: #1e2328; color: #aaa; border: 1px solid #444;
+            padding: 8px 15px; cursor: pointer; border-radius: 4px; font-size: 13px; transition: 0.2s;
         }
-        .preset-btn:hover { background: #c8aa6e; color: #000; box-shadow: 0 0 10px #c8aa6e; }
+        .preset-btn:hover { background: #005a82; color: #fff; border-color: #00d2d3; }
+        
+        .category-header { 
+            width: 100%; color: #c8aa6e; font-weight:bold; font-size: 14px; 
+            margin: 15px 0 5px 0; border-bottom: 1px solid #333; padding-bottom: 5px;
+        }
 
-        /* --- 2. 인벤토리 (6칸) --- */
-        .inventory-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        /* 강조 스타일 */
+        .adc-btn { border-color: #c8aa6e; color: #c8aa6e; background: rgba(200, 170, 110, 0.1); }
+        .adc-btn:hover { background: #c8aa6e; color: #000; }
+        
+        .jg-btn { border-color: #00d2d3; color: #00d2d3; background: rgba(0, 210, 211, 0.1); }
+        .jg-btn:hover { background: #00d2d3; color: #000; }
+
+        /* --- 3. 인벤토리 --- */
+        .inventory-box { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
         .slot { 
-            width: 64px; height: 64px; 
-            background: #010a13; border: 2px solid #5c5b57; 
-            border-radius: 8px; cursor: pointer; position: relative;
-            display: flex; align-items: center; justify-content: center;
+            width: 60px; height: 60px; background: #010a13; border: 2px solid #333; 
+            border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative;
         }
         .slot img { width: 100%; height: 100%; border-radius: 6px; }
-        .slot:hover { border-color: #f0e6d2; box-shadow: 0 0 15px rgba(200, 170, 110, 0.5); }
-        .slot::after { content: '❌'; position: absolute; top: -5px; right: -5px; font-size: 12px; display: none; }
-        .slot:hover::after { display: block; background: #000; border-radius: 50%; }
+        .slot:hover { border-color: #f0e6d2; }
+        .slot-hint { position: absolute; font-size: 10px; color: #555; bottom: 2px; }
 
-        /* --- 3. 데이터 시각화 (표 + 차트) --- */
-        .analysis-container { 
-            display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; 
-            max-width: 900px; margin: 0 auto 40px auto; 
-        }
-        
-        /* 스탯 표 (Table) 디자인 */
-        .table-box { 
-            flex: 1; min-width: 300px; 
-            background: #1e2328; border: 2px solid #3c3c41; border-radius: 8px; padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-        .stat-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .stat-table th { border-bottom: 1px solid #555; padding: 8px; color: #fff; text-align: left; }
-        .stat-table td { padding: 8px; border-bottom: 1px solid #333; color: #c8aa6e; font-weight: bold; text-align: right; }
-        .stat-table .label-col { text-align: left; color: #a09b8c; font-weight: normal; }
-        .total-price { font-size: 18px; color: #ffd700; text-align: right; margin-bottom: 10px; display: block; }
+        /* --- 4. 분석 결과 (표) --- */
+        .analysis-box { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 900px; margin: 0 auto; }
+        .table-container { flex: 1; min-width: 300px; background: #111; border-radius: 10px; padding: 15px; border: 1px solid #333; }
+        .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .stat-table td { padding: 6px; border-bottom: 1px solid #222; text-align: right; color: #c8aa6e; }
+        .stat-table .label { text-align: left; color: #aaa; }
+        .total-gold { color: gold; font-size: 18px; font-weight: bold; text-align: right; display: block; margin-bottom: 10px; }
 
-        /* 차트 박스 */
-        .chart-box { 
-            width: 300px; height: 300px; 
-            background: #1e2328; border: 2px solid #3c3c41; border-radius: 8px; padding: 10px;
-        }
-
-        /* --- 4. 아이템 필터 및 리스트 --- */
-        .filter-bar { margin-bottom: 15px; }
-        .filter-btn {
-            background: transparent; color: #888; border: 1px solid #444;
-            padding: 6px 12px; margin: 2px; cursor: pointer; border-radius: 20px;
-        }
-        .filter-btn.active { background: #c8aa6e; color: #091428; font-weight: bold; border-color: #c8aa6e; }
-
-        .search-box input { 
-            padding: 10px; width: 60%; max-width: 400px; 
-            background: #1e2328; border: 1px solid #555; color: #fff; 
-            border-radius: 5px; outline: none; text-align: center;
-        }
-
-        .item-list { 
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; 
-            max-width: 1000px; margin: 20px auto; padding-bottom: 50px;
-        }
-        .item-card { 
-            width: 50px; height: 50px; cursor: pointer; 
-            border: 1px solid #333; overflow: hidden; transition: 0.2s;
-        }
+        /* 아이템 리스트 */
+        .search-box { margin: 30px 0 10px 0; }
+        .search-box input { padding: 10px; width: 300px; background: #222; border: 1px solid #444; color: white; text-align: center; }
+        .item-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; max-width: 1000px; margin: 0 auto 50px auto; }
+        .item-card { width: 45px; height: 45px; cursor: pointer; border: 1px solid #333; }
+        .item-card:hover { transform: scale(1.2); border-color: gold; z-index: 10; }
         .item-card img { width: 100%; height: 100%; }
-        .item-card:hover { transform: scale(1.15); border: 2px solid #c8aa6e; z-index: 10; }
 
     </style>
 </head>
 <body>
 
-    <h1>🗡️ PC LoL 아이템 조합 연구소</h1>
-    <p>원하는 조합을 클릭하거나 직접 아이템을 골라보세요.</p>
+    <h1>🧠 LoL 아이템 연구소 <span style="font-size:0.5em; color:#555;">Ver 3.2</span></h1>
 
-    <div class="preset-container">
-        <span class="preset-title">🤖 AI 자동 추천 조합 (Click!)</span>
-        <button class="preset-btn" onclick="applyPreset('ap_burst')">🔥 AP 폭딜 (스킬콤보)</button>
-        <button class="preset-btn" onclick="applyPreset('ad_lethality')">🏹 원딜 (방관)</button>
-        <button class="preset-btn" onclick="applyPreset('ad_crit')">⚡ 원딜 (치명타)</button>
-        <button class="preset-btn" onclick="applyPreset('tank_hard')">🛡️ 극탱커 (좀비)</button>
-        <button class="preset-btn" onclick="applyPreset('sup_util')">🏥 유틸 서폿</button>
+    <div class="smart-builder">
+        <span class="builder-title">🤖 AI 자동 추천 (스탯 설정)</span>
+        <div class="slider-grid">
+            <div class="slider-group">
+                <div class="slider-label"><span>⚔️ 공격력</span> <span id="val_ad">0</span></div>
+                <input type="range" id="range_ad" min="0" max="10" value="0" oninput="updateRangeVal('val_ad', this.value)">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>🔮 주문력</span> <span id="val_ap">0</span></div>
+                <input type="range" id="range_ap" min="0" max="10" value="0" oninput="updateRangeVal('val_ap', this.value)">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>🛡️ 탱킹(체력/방어)</span> <span id="val_tank">0</span></div>
+                <input type="range" id="range_tank" min="0" max="10" value="0" oninput="updateRangeVal('val_tank', this.value)">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>⚡ 공격 속도</span> <span id="val_as">0</span></div>
+                <input type="range" id="range_as" min="0" max="10" value="0" oninput="updateRangeVal('val_as', this.value)">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>💥 치명타 확률</span> <span id="val_crit">0</span></div>
+                <input type="range" id="range_crit" min="0" max="10" value="0" oninput="updateRangeVal('val_crit', this.value)">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>⏳ 스킬 가속(쿨감)</span> <span id="val_ah">0</span></div>
+                <input type="range" id="range_ah" min="0" max="10" value="0" oninput="updateRangeVal('val_ah', this.value)">
+            </div>
+        </div>
+        <button class="generate-btn" onclick="autoGenerateBuild()">내 입맛대로 조합 생성하기</button>
+    </div>
+
+    <div class="preset-bar">
+        <div class="category-header" style="color:#00d2d3">🌲 정글러 (Jungle)</div>
+        <button class="preset-btn jg-btn" onclick="applyPreset('jg_ad')">🌪️ AD 갱킹 (리신/카직스)</button>
+        <button class="preset-btn jg-btn" onclick="applyPreset('jg_ap')">🔥 AP 누커 (엘리스/이블린)</button>
+        <button class="preset-btn jg-btn" onclick="applyPreset('jg_tank')">🛡️ 탱커 (세주아니/자크)</button>
+        <button class="preset-btn jg-btn" onclick="applyPreset('jg_rpg')">⚔️ 성장형 (마이/비에고)</button>
+
+        <div class="category-header">🏹 원거리 딜러 (ADC)</div>
+        <button class="preset-btn adc-btn" onclick="applyPreset('adc_crit')">⚡ 치명타 (징크스)</button>
+        <button class="preset-btn adc-btn" onclick="applyPreset('adc_onhit')">🌪️ 공속/적중 (베인)</button>
+        <button class="preset-btn adc-btn" onclick="applyPreset('adc_lethality')">🗡️ 방관 포킹 (진)</button>
+        <button class="preset-btn adc-btn" onclick="applyPreset('adc_caster')">💧 스킬형 (이즈리얼)</button>
+
+        <div class="category-header">🔮 미드 / 탑</div>
+        <button class="preset-btn" onclick="applyPreset('mage_burst')">🔥 누커 (폭딜)</button>
+        <button class="preset-btn" onclick="applyPreset('mage_poke')">☄️ 포킹 (제라스)</button>
+        <button class="preset-btn" onclick="applyPreset('assassin')">🗡️ 암살자 (탈론)</button>
+        <button class="preset-btn" onclick="applyPreset('bruiser')">🪓 브루저 (다리우스)</button>
+
+        <div class="category-header">🛡️ 서포터</div>
+        <button class="preset-btn" onclick="applyPreset('tank_hard')">🗿 퓨어 탱커</button>
+        <button class="preset-btn" onclick="applyPreset('sup_util')">🧚 유틸 서폿</button>
+        <button class="preset-btn" onclick="applyPreset('sup_tank')">🛡️ 탱 서폿</button>
     </div>
 
     <div class="inventory-box">
-        <div class="slot" onclick="removeItem(0)"></div>
-        <div class="slot" onclick="removeItem(1)"></div>
-        <div class="slot" onclick="removeItem(2)"></div>
-        <div class="slot" onclick="removeItem(3)"></div>
-        <div class="slot" onclick="removeItem(4)"></div>
-        <div class="slot" onclick="removeItem(5)"></div>
+        <div class="slot" onclick="removeItem(0)"><span class="slot-hint">1</span></div>
+        <div class="slot" onclick="removeItem(1)"><span class="slot-hint">2</span></div>
+        <div class="slot" onclick="removeItem(2)"><span class="slot-hint">3</span></div>
+        <div class="slot" onclick="removeItem(3)"><span class="slot-hint">4</span></div>
+        <div class="slot" onclick="removeItem(4)"><span class="slot-hint">5</span></div>
+        <div class="slot" onclick="removeItem(5)"><span class="slot-hint">6</span></div>
     </div>
 
-    <div class="analysis-container">
-        <div class="table-box">
-            <span class="total-price" id="totalPrice">0 Gold</span>
+    <div class="analysis-box">
+        <div class="table-container">
+            <span class="total-gold" id="totalPrice">0 G</span>
             <table class="stat-table">
-                <thead>
-                    <tr><th colspan="2">📊 종합 능력치 합계</th></tr>
-                </thead>
-                <tbody id="statTableBody">
-                    <tr><td class="label-col" colspan="2" style="text-align:center; color:#555;">아이템을 추가하세요</td></tr>
+                <tbody id="statBody">
+                    <tr><td colspan="2" style="text-align:center">아이템을 추가하세요</td></tr>
                 </tbody>
             </table>
         </div>
-        <div class="chart-box">
+        <div style="width:300px; height:300px; background:#111; padding:10px; border-radius:10px;">
             <canvas id="statChart"></canvas>
         </div>
-    </div>
-
-    <div class="filter-bar">
-        <button class="filter-btn active" onclick="setFilter('all')">전체</button>
-        <button class="filter-btn" onclick="setFilter('Damage')">⚔️ 공격력</button>
-        <button class="filter-btn" onclick="setFilter('SpellDamage')">🔮 주문력</button>
-        <button class="filter-btn" onclick="setFilter('Defense')">🛡️ 방어/탱</button>
-        <button class="filter-btn" onclick="setFilter('AttackSpeed')">⚡ 공속</button>
-        <button class="filter-btn" onclick="setFilter('Boots')">👟 신발</button>
     </div>
 
     <div class="search-box">
         <input type="text" id="search" placeholder="아이템 이름 검색..." onkeyup="filterItems()">
     </div>
-
     <div class="item-list" id="itemList"></div>
 
     <script>
-        // --- 설정 ---
-        const VERSION = "14.3.1"; // 패치 버전
+        const VERSION = "14.3.1";
         const DATA_URL = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/data/ko_KR/item.json`;
         const IMG_URL = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/img/item/`;
 
-        let allItems = [];      // 전체 아이템
-        let displayItems = [];  // 화면에 보여줄 아이템 (필터링됨)
+        let allItems = [];
+        let displayItems = [];
         let myInventory = [null, null, null, null, null, null];
         let radarChart;
-        let currentFilter = 'all';
 
-        // --- 자동 조합 데이터 (프리셋) ---
-        // 개발자 노트: 여기에 원하는 조합을 아이템 '이름'으로 적어두면 됩니다.
+        // --- 1. 프리셋 데이터 (정글 추가됨) ---
         const PRESETS = {
-            'ap_burst': ["라바돈의 죽음모자", "루덴의 동반자", "그림자불꽃", "공허의 지팡이", "존야의 모래시계", "마법사의 신발"],
-            'ad_lethality': ["요우무의 유령검", "징수의 총", "밤의 끝자락", "세릴다의 원한", "원칙의 원형낫", "아이오니아 장화"],
-            'ad_crit': ["무한의 대검", "크라켄 학살자", "도미닉 경의 인사", "유령 무희", "피바라기", "광전사의 군화"],
+            // [🌲 정글러]
+            'jg_ad': ["요우무의 유령검", "오만", "원칙의 원형낫", "밤의 끝자락", "세릴다의 원한", "기동력의 장화"], // 육식 (암살)
+            'jg_ap': ["리치베인", "그림자불꽃", "라바돈의 죽음모자", "존야의 모래시계", "공허의 지팡이", "마법사의 신발"], // 엘리스/이브
+            'jg_tank': ["태양불꽃 방패", "가시 갑옷", "해신 작쇼", "케이닉 루컨", "워모그의 갑옷", "판금 장화"], // 초식
+            'jg_rpg': ["크라켄 학살자", "몰락한 왕의 검", "구인수의 격노검", "마법사의 최후", "죽음의 무도", "광전사의 군화"], // 마이/비에고
+
+            // [🏹 원딜]
+            'adc_crit': ["무한의 대검", "크라켄 학살자", "도미닉 경의 인사", "유령 무희", "피바라기", "광전사의 군화"],
+            'adc_onhit': ["구인수의 격노검", "몰락한 왕의 검", "마법사의 최후", "루난의 허리케인", "경계", "광전사의 군화"],
+            'adc_lethality': ["요우무의 유령검", "징수의 총", "밤의 끝자락", "세릴다의 원한", "원칙의 원형낫", "아이오니아 장화"],
+            'adc_caster': ["삼위일체", "마나무네", "쇼진의 창", "세릴다의 원한", "굶주린 히드라", "아이오니아 장화"],
+
+            // [🔮 미드/탑]
+            'mage_burst': ["라바돈의 죽음모자", "루덴의 동반자", "그림자불꽃", "공허의 지팡이", "존야의 모래시계", "마법사의 신발"],
+            'mage_poke': ["리안드리의 고통", "지평선의 초점", "라일라이의 수정홀", "우주의 추진력", "모렐로노미콘", "명석함의 아이오니아 장화"],
+            'assassin': ["요우무의 유령검", "드락사르의 황혼검", "밤의 끝자락", "세릴다의 원한", "죽음의 무도", "기동력의 장화"],
+            'bruiser': ["삼위일체", "죽음의 무도", "스테락의 도전", "칠흑의 양날 도끼", "거대한 히드라", "판금 장화"],
+
+            // [🛡️ 서폿]
             'tank_hard': ["강철심장", "태양불꽃 방패", "가시 갑옷", "정령의 형상", "워모그의 갑옷", "판금 장화"],
-            'sup_util': ["슈렐리아의 군가", "불타는 향로", "흐르는 물의 지팡이", "구원", "미카엘의 축복", "기동력의 장화"]
+            'sup_util': ["슈렐리아의 군가", "불타는 향로", "흐르는 물의 지팡이", "구원", "미카엘의 축복", "기동력의 장화"],
+            'sup_tank': ["강철의 솔라리 펜던트", "기사의 맹세", "지크의 융합", "가시 갑옷", "얼어붙은 심장", "판금 장화"]
         };
 
-        // 1. 데이터 가져오기
         async function init() {
-            try {
-                const res = await fetch(DATA_URL);
-                const json = await res.json();
-                
-                // 전설템(최종템) 위주로 필터링: 가격 1500 이상 & 소모품 아님
-                // 단, 신발은 가격이 싸도 포함해야 함
-                allItems = Object.values(json.data).filter(item => {
-                    const isBoot = item.tags && item.tags.includes("Boots");
-                    const isCompleted = item.gold.total > 1500 && !item.tags.includes("Consumable");
-                    return isCompleted || (isBoot && item.gold.total > 800); // 똥신발 제외
-                });
-
-                displayItems = allItems;
-                renderList();
-            } catch (e) {
-                alert("데이터를 불러오는 중 오류가 발생했습니다.");
-                console.error(e);
-            }
-        }
-
-        // 2. 화면에 아이템 뿌리기
-        function renderList() {
-            const listDiv = document.getElementById("itemList");
-            listDiv.innerHTML = "";
+            const res = await fetch(DATA_URL);
+            const json = await res.json();
             
-            // 성능 최적화를 위해 최대 100개까지만 렌더링 (검색하면 다 나옴)
-            const limit = displayItems.length > 100 ? 100 : displayItems.length;
-
-            for(let i=0; i<limit; i++) {
-                const item = displayItems[i];
-                const div = document.createElement("div");
-                div.className = "item-card";
-                div.innerHTML = `<img src="${IMG_URL + item.image.full}" title="${item.name}\n가격: ${item.gold.total}">`;
-                div.onclick = () => addItem(item);
-                listDiv.appendChild(div);
-            }
-        }
-
-        // 3. 필터링 로직 (카테고리)
-        function setFilter(tag) {
-            currentFilter = tag;
-            
-            // 버튼 스타일 활성화
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            if (tag === 'all') {
-                displayItems = allItems;
-            } else {
-                // Riot 데이터의 'tags' 배열 활용
-                displayItems = allItems.filter(item => item.tags && item.tags.includes(tag));
-            }
-            renderList();
-        }
-
-        function filterItems() {
-            const keyword = document.getElementById("search").value;
-            displayItems = allItems.filter(item => item.name.includes(keyword));
-            renderList();
-        }
-
-        // 4. 인벤토리 조작 & 자동 조합
-        function addItem(item) {
-            const idx = myInventory.indexOf(null);
-            if(idx > -1) { myInventory[idx] = item; updateUI(); }
-            else { alert("인벤토리가 가득 찼습니다! 아이템을 클릭해서 비우세요."); }
-        }
-
-        function removeItem(idx) { myInventory[idx] = null; updateUI(); }
-
-        function applyPreset(type) {
-            const targetNames = PRESETS[type];
-            if(!targetNames) return;
-
-            // 인벤토리 비우기
-            myInventory = [null, null, null, null, null, null];
-
-            // 이름으로 아이템 찾아서 넣기
-            let slotIdx = 0;
-            targetNames.forEach(name => {
-                const foundItem = allItems.find(item => item.name === name);
-                if(foundItem && slotIdx < 6) {
-                    myInventory[slotIdx] = foundItem;
-                    slotIdx++;
-                }
+            allItems = Object.values(json.data).filter(item => {
+                const isConsumable = item.tags && item.tags.includes("Consumable");
+                // 오른템 등 필터링
+                const isSpecial = item.requiredAlly || (item.description && item.description.includes("걸작"));
+                return !isConsumable && !isSpecial && item.gold.total > 800;
             });
+
+            displayItems = allItems;
+            renderList();
+        }
+
+        // --- 2. 스마트 빌더 ---
+        function autoGenerateBuild() {
+            const weights = {
+                ad: parseInt(document.getElementById('range_ad').value),
+                ap: parseInt(document.getElementById('range_ap').value),
+                tank: parseInt(document.getElementById('range_tank').value),
+                as: parseInt(document.getElementById('range_as').value),
+                crit: parseInt(document.getElementById('range_crit').value),
+                ah: parseInt(document.getElementById('range_ah').value)
+            };
+
+            const calculateScore = (item) => {
+                let score = 0;
+                if(item.stats.FlatPhysicalDamageMod) score += item.stats.FlatPhysicalDamageMod * weights.ad * 2;
+                if(item.stats.FlatMagicDamageMod) score += item.stats.FlatMagicDamageMod * weights.ap * 2;
+                if(item.stats.FlatHPPoolMod) score += (item.stats.FlatHPPoolMod / 10) * weights.tank;
+                if(item.stats.FlatArmorMod) score += item.stats.FlatArmorMod * weights.tank * 2;
+                if(item.stats.FlatSpellBlockMod) score += item.stats.FlatSpellBlockMod * weights.tank * 2;
+                if(item.stats.PercentAttackSpeedMod) score += (item.stats.PercentAttackSpeedMod * 100) * weights.as;
+                if(item.stats.FlatCritChanceMod) score += (item.stats.FlatCritChanceMod * 100) * weights.crit;
+                if(item.tags && item.tags.includes("CooldownReduction")) score += 20 * weights.ah;
+                return score;
+            };
+
+            const legendaries = allItems
+                .filter(i => !i.tags.includes("Boots") && i.gold.total > 2000)
+                .map(item => ({ item, score: calculateScore(item) }))
+                .sort((a, b) => b.score - a.score);
+
+            let bestBoot = "판금 장화";
+            if (weights.ap > weights.ad) bestBoot = "마법사의 신발";
+            if (weights.as > 5 || weights.crit > 5) bestBoot = "광전사의 군화";
+            if (weights.ah > 6) bestBoot = "명석함의 아이오니아 장화";
+            if (weights.ad > 6 && weights.tank < 3) bestBoot = "기동력의 장화"; // 암살자/정글은 기동력
+
+            myInventory = [null, null, null, null, null, null];
+            
+            const bootItem = allItems.find(i => i.name === bestBoot);
+            if(bootItem) myInventory[5] = bootItem;
+
+            let slot = 0;
+            let addedNames = new Set();
+            for(let i=0; i < legendaries.length; i++) {
+                if(slot >= 5) break;
+                const cand = legendaries[i].item;
+                if(!addedNames.has(cand.name)) {
+                    myInventory[slot] = cand;
+                    addedNames.add(cand.name);
+                    slot++;
+                }
+            }
             updateUI();
         }
 
-        // 5. 핵심: UI 업데이트 (표 + 차트)
+        function updateRangeVal(id, val) { document.getElementById(id).innerText = val; }
+
+        function renderList() {
+            const div = document.getElementById("itemList");
+            div.innerHTML = "";
+            displayItems.slice(0, 100).forEach(i => {
+                const img = document.createElement("img");
+                img.src = IMG_URL + i.image.full;
+                img.className = "item-card";
+                img.onclick = () => addItem(i);
+                img.title = i.name;
+                div.appendChild(img);
+            });
+        }
+
+        function addItem(item) {
+            const idx = myInventory.indexOf(null);
+            if(idx > -1) { myInventory[idx] = item; updateUI(); }
+        }
+        function removeItem(idx) { myInventory[idx] = null; updateUI(); }
+
+        function applyPreset(type) {
+            myInventory = [null, null, null, null, null, null];
+            const names = PRESETS[type];
+            let slot = 0;
+            if(names) {
+                names.forEach(name => {
+                    const item = allItems.find(i => i.name === name);
+                    if(item && slot < 6) { myInventory[slot] = item; slot++; }
+                });
+            }
+            updateUI();
+        }
+
         function updateUI() {
             const slots = document.querySelectorAll(".slot");
-            let totalPrice = 0;
-            
-            // 합산할 스탯 정의 (Riot API Key -> 한글 명칭)
-            let stats = {
-                "FlatPhysicalDamageMod": { val: 0, name: "공격력" },
-                "FlatMagicDamageMod": { val: 0, name: "주문력" },
-                "FlatHPPoolMod": { val: 0, name: "체력" },
-                "FlatArmorMod": { val: 0, name: "방어력" },
-                "FlatSpellBlockMod": { val: 0, name: "마법저항" },
-                "PercentAttackSpeedMod": { val: 0, name: "공격 속도" },
-                "FlatCritChanceMod": { val: 0, name: "치명타" },
-                "FlatMovementSpeedMod": { val: 0, name: "이동 속도" }
-            };
+            let totalGold = 0;
+            let stats = { "공격력":0, "주문력":0, "체력":0, "방어력":0, "마법저항":0, "공속":0, "치명타":0, "이동속도":0 };
 
-            // 인벤토리 순회하며 합산
             myInventory.forEach((item, i) => {
                 slots[i].innerHTML = item ? `<img src="${IMG_URL + item.image.full}">` : "";
-                
                 if(item) {
-                    totalPrice += item.gold.total;
-                    for (const [key, obj] of Object.entries(stats)) {
-                        if (item.stats[key]) {
-                            stats[key].val += item.stats[key];
-                        }
-                    }
+                    totalGold += item.gold.total;
+                    stats["공격력"] += item.stats.FlatPhysicalDamageMod || 0;
+                    stats["주문력"] += item.stats.FlatMagicDamageMod || 0;
+                    stats["체력"] += item.stats.FlatHPPoolMod || 0;
+                    stats["방어력"] += item.stats.FlatArmorMod || 0;
+                    stats["마법저항"] += item.stats.FlatSpellBlockMod || 0;
+                    stats["공속"] += item.stats.PercentAttackSpeedMod || 0;
+                    stats["치명타"] += item.stats.FlatCritChanceMod || 0;
+                    stats["이동속도"] += item.stats.FlatMovementSpeedMod || 0;
                 }
             });
 
-            // A. 표(Table) 업데이트
-            document.getElementById("totalPrice").innerText = totalPrice.toLocaleString() + " Gold";
-            const tbody = document.getElementById("statTableBody");
+            document.getElementById("totalPrice").innerText = totalGold.toLocaleString() + " G";
+            const tbody = document.getElementById("statBody");
             tbody.innerHTML = "";
-
-            let hasStat = false;
-            for (const [key, obj] of Object.entries(stats)) {
-                if (obj.val > 0) {
-                    hasStat = true;
-                    let displayVal = obj.val;
-                    if(key === 'PercentAttackSpeedMod' || key === 'FlatCritChanceMod') {
-                        displayVal = (obj.val * 100).toFixed(0) + "%"; // 퍼센트 변환
-                    }
-                    
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `<td class="label-col">${obj.name}</td><td>+${displayVal}</td>`;
-                    tbody.appendChild(tr);
+            for(let [k, v] of Object.entries(stats)) {
+                if(v > 0) {
+                    let displayV = v;
+                    if(k === "공속" || k === "치명타") displayV = (v * 100).toFixed(0) + "%";
+                    tbody.innerHTML += `<tr><td class="label">${k}</td><td>+${displayV}</td></tr>`;
                 }
             }
-            if(!hasStat) {
-                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; padding:20px; color:#555;">조합된 아이템이 없습니다</td></tr>`;
-            }
-
-            // B. 차트 업데이트
             updateChart(stats);
         }
 
-        // 6. 차트 그리기
         function updateChart(s) {
             const ctx = document.getElementById('statChart').getContext('2d');
-            // 차트용 데이터 정규화 (체력은 너무 커서 나누기)
-            const dataValues = [
-                s.FlatPhysicalDamageMod.val, 
-                s.FlatMagicDamageMod.val, 
-                s.FlatHPPoolMod.val / 10, 
-                s.FlatArmorMod.val, 
-                s.FlatSpellBlockMod.val,
-                s.PercentAttackSpeedMod.val * 100 
-            ];
-
+            const data = [s["공격력"], s["주문력"], s["체력"]/10, s["방어력"], s["마법저항"], s["공속"]*100];
+            
             if(radarChart) {
-                radarChart.data.datasets[0].data = dataValues;
+                radarChart.data.datasets[0].data = data;
                 radarChart.update();
             } else {
                 radarChart = new Chart(ctx, {
                     type: 'radar',
                     data: {
-                        labels: ['공격력', '주문력', '체력/10', '방어', '마방', '공속'],
+                        labels: ['공격', '주문', '체력/10', '방어', '마방', '공속'],
                         datasets: [{
-                            label: '스탯 밸런스',
-                            data: dataValues,
-                            backgroundColor: 'rgba(200, 170, 110, 0.2)', // LoL 골드색
+                            label: '스탯',
+                            data: data,
+                            backgroundColor: 'rgba(200, 170, 110, 0.2)',
                             borderColor: '#c8aa6e',
-                            borderWidth: 2,
                             pointBackgroundColor: '#fff'
                         }]
                     },
                     options: {
-                        scales: {
-                            r: {
-                                angleLines: { color: '#333' },
-                                grid: { color: '#333' },
-                                pointLabels: { color: '#aaa', font: {size: 11} },
-                                ticks: { display: false, maxTicksLimit: 5 },
-                                suggestedMin: 0,
-                                suggestedMax: 100
-                            }
-                        },
+                        scales: { r: { grid: { color: '#333' }, ticks: { display: false } } },
                         plugins: { legend: { display: false } }
                     }
                 });
             }
         }
 
-        // 시작
+        function filterItems() {
+            const key = document.getElementById("search").value;
+            const filtered = allItems.filter(i => i.name.includes(key));
+            const div = document.getElementById("itemList");
+            div.innerHTML = "";
+            filtered.slice(0, 100).forEach(i => {
+                const img = document.createElement("img");
+                img.src = IMG_URL + i.image.full;
+                img.className = "item-card";
+                img.onclick = () => addItem(i);
+                div.appendChild(img);
+            });
+        }
+
         init();
     </script>
 </body>
